@@ -117,6 +117,7 @@ pub struct SysMemoryRegion {
     pub page_count: u64,
     pub phys_addr: Option<u64>,
     pub text_pos: Option<roxmltree::TextPos>,
+    pub backed: bool,
 }
 
 impl SysMemoryRegion {
@@ -694,7 +695,7 @@ impl SysMemoryRegion {
         node: &roxmltree::Node,
         plat_desc: &PlatformDescription,
     ) -> Result<SysMemoryRegion, String> {
-        check_attributes(xml_sdf, node, &["name", "size", "page_size", "phys_addr"])?;
+        check_attributes(xml_sdf, node, &["name", "size", "page_size", "phys_addr", "backed"])?;
 
         let name = checked_lookup(xml_sdf, node, "name")?;
         let size = sdf_parse_number(checked_lookup(xml_sdf, node, "size")?, node)?;
@@ -739,6 +740,21 @@ impl SysMemoryRegion {
 
         let page_count = size / page_size;
 
+        let backed = if let Some(xml_backed) = node.attribute("backed") {
+            match str_to_bool(xml_backed) {
+                Some(val) => val,
+                None => {
+                    return Err(value_error(
+                        xml_sdf,
+                        node,
+                        "backed must be 'true' or 'false'".to_string(),
+                    ))
+                }
+            }
+        } else {
+            true
+        };
+
         Ok(SysMemoryRegion {
             name: name.to_string(),
             size,
@@ -746,6 +762,7 @@ impl SysMemoryRegion {
             page_count,
             phys_addr,
             text_pos: Some(xml_sdf.doc.text_pos_at(node.range().start)),
+            backed
         })
     }
 }
