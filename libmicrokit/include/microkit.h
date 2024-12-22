@@ -14,6 +14,7 @@
 typedef unsigned int microkit_channel;
 typedef unsigned int microkit_child;
 typedef seL4_MessageInfo_t microkit_msginfo;
+typedef unsigned long long microkit_uint64_t;
 
 #define VSPACE_CAP 3
 #define MONITOR_EP 5
@@ -39,6 +40,10 @@ extern char microkit_name[16];
 extern seL4_Bool microkit_have_signal;
 extern seL4_CPtr microkit_signal_cap;
 extern seL4_MessageInfo_t microkit_signal_msg;
+
+/* Patched child page table structures */
+extern microkit_uint64_t table_metadata[64];
+extern microkit_uint64_t table_data[0x800 * (CPR_CLIENTS + 100)];
 
 /*
  * Output a single character on the debug console.
